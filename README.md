@@ -1,13 +1,15 @@
 # DigitalOcean App Platform Dev Container
 
 > **Complete local development environment for DigitalOcean App Platform**
-> Clone → Open → Run. Zero configuration needed.
+> Copy `.devcontainer/` → Open → Run. Zero configuration needed.
 
-A production-ready development container that provides DigitalOcean App Platform customers with a complete local environment mirroring production. Includes multi-language runtime support (Node.js, Python, Go, Rust) and local infrastructure services (PostgreSQL, MySQL, Valkey, Kafka, OpenSearch, MinIO, MongoDB) that replicate DigitalOcean managed services.
+A production-ready development container template that provides DigitalOcean App Platform customers with a complete local environment mirroring production. Includes multi-language runtime support (Node.js, Python, Go, Rust) and local infrastructure services (PostgreSQL, MySQL, Valkey, Kafka, OpenSearch, MinIO, MongoDB) that replicate DigitalOcean managed services.
+
+**Tested on:** macOS
 
 ## ✨ Features
 
-- **🎯 Zero Configuration** - Clone the repo, open in VS Code/Cursor, and start coding immediately
+- **🎯 Zero Configuration** - Copy `.devcontainer/` folder to your repo, open in VS Code/Cursor, and start coding immediately
 - **🔒 Isolated Environment** - Everything runs in containers with no conflicts on your host machine
 - **🤖 AI-Ready** - Pre-configured for Cursor, Claude Code, Copilot, and other AI assistants
 - **🚀 Fast Iteration** - Hot reload, HMR, and instant feedback loops
@@ -18,22 +20,22 @@ A production-ready development container that provides DigitalOcean App Platform
 
 ## 🚀 Quick Start
 
+**Important:** You don't clone this repository. Instead, you copy the `.devcontainer/` folder from this repository into your own application repository.
+
 ### Prerequisites
 
 - Docker Desktop or Docker Engine installed and running
 - VS Code or Cursor installed
 - Dev Containers extension (usually built-in)
 
-### Get Started in 60 Seconds
+### Get Started
 
-1. **Clone this repository:**
-   ```bash
-   git clone https://github.com/AppPlatform-Templates/devcontainer-appplatform.git
-   cd devcontainer-appplatform
-   ```
+1. **Get the `.devcontainer/` folder** from this repository:
+   - **Option 1:** Download as ZIP from [GitHub](https://github.com/AppPlatform-Templates/devcontainer-appplatform/archive/refs/heads/main.zip), extract, and copy only the `.devcontainer/` folder to your repo
+   - **Option 2:** Use git sparse-checkout (see detailed instructions below)
 
 2. **Open in VS Code or Cursor:**
-   - Open the folder in your editor
+   - Open your repository in your editor
    - Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
    - Select "Dev Containers: Reopen in Container"
    - Wait for the container to build (first time: 5-10 minutes)
@@ -46,7 +48,12 @@ A production-ready development container that provides DigitalOcean App Platform
    python worker.py   # or your backend/worker command
    ```
 
-**That's it!** You now have a complete local development environment that mirrors DigitalOcean App Platform.
+**📖 For detailed setup instructions**, see [.devcontainer/README.md](.devcontainer/README.md) which includes:
+- Step-by-step guide for new applications (greenfield)
+- Step-by-step guide for existing applications (brownfield)
+- Platform compatibility notes (macOS, Linux, Windows)
+- Multiple projects configuration
+- Troubleshooting and FAQ
 
 ## 🏗️ What's Included
 
@@ -81,7 +88,7 @@ A production-ready development container that provides DigitalOcean App Platform
 
 ## 📖 Documentation
 
-- **[.devcontainer/README.md](.devcontainer/README.md)** - Comprehensive dev container guide with setup, architecture, and troubleshooting
+- **[.devcontainer/README.md](.devcontainer/README.md)** - **Start here!** Comprehensive dev container guide with setup instructions, architecture, troubleshooting, and FAQ
 - **[.devcontainer/README-docker.md](.devcontainer/README-docker.md)** - Docker and Docker Compose command reference
 - **[test-suite/README.md](test-suite/README.md)** - Test suite documentation and validation
 - **[CLAUDE.md](CLAUDE.md)** - AI assistant integration guide for Claude Code
@@ -202,11 +209,12 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🎓 Next Steps
 
-1. **Read the comprehensive guide:** [.devcontainer/README.md](.devcontainer/README.md)
-2. **Configure your app:** Follow the refactoring guide to support `APP_ENV=local`
-3. **Enable services you need:** Edit `.devcontainer/.env` and set `COMPOSE_PROFILES`
-4. **Run the test suite:** Validate your setup with `bash test-suite/run-suite.sh`
-5. **Start coding:** Your local environment now mirrors production!
+1. **Read the comprehensive guide:** [.devcontainer/README.md](.devcontainer/README.md) - Includes detailed setup for both new and existing applications
+2. **Copy `.devcontainer/` folder** to your application repository (don't clone this repo!)
+3. **Configure your app:** Follow the refactoring guide to support `APP_ENV=local` (if adding to existing app)
+4. **Enable services you need:** Edit `.devcontainer/.env` and set `COMPOSE_PROFILES`
+5. **Run the test suite:** Validate your setup with `bash test-suite/run-suite.sh`
+6. **Start coding:** Your local environment now mirrors production!
 
 ---
 
