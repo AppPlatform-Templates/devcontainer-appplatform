@@ -1,0 +1,134 @@
+{
+  "name": "App Platform Development Container",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/app",
+
+  // Port forwarding for all services
+  "forwardPorts": [
+    3000, // Next.js app
+    5432, // PostgreSQL
+    6379, // Valkey
+    3306, // MySQL
+    9092, // Kafka
+    9200, // OpenSearch
+    5601, // OpenSearch Dashboards
+    9000, // MinIO API
+    8900, // MinIO Console
+    27017 // MongoDB
+  ],
+
+  "portsAttributes": {
+    "3000": {
+      "label": "Next.js App",
+      "onAutoForward": "notify"
+    },
+    "5432": {
+      "label": "PostgreSQL",
+      "onAutoForward": "silent"
+    },
+    "6379": {
+      "label": "Valkey",
+      "onAutoForward": "silent"
+    },
+    "3306": {
+      "label": "MySQL",
+      "onAutoForward": "silent"
+    },
+    "9092": {
+      "label": "Kafka",
+      "onAutoForward": "silent"
+    },
+    "9200": {
+      "label": "OpenSearch",
+      "onAutoForward": "silent"
+    },
+    "5601": {
+      "label": "OpenSearch Dashboards",
+      "onAutoForward": "silent"
+    },
+    "9000": {
+      "label": "MinIO API",
+      "onAutoForward": "silent"
+    },
+    "8900": {
+      "label": "MinIO Console",
+      "onAutoForward": "silent"
+    },
+    "27017": {
+      "label": "MongoDB",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Mount credentials and configs from host
+  "mounts": [
+    // doctl config: macOS location (primary), Linux fallback handled in postCreateCommand
+    "source=${localEnv:HOME}/Library/Application Support/doctl,target=/tmp/doctl-config-mac,type=bind,consistency=cached,readonly",
+    "source=${localEnv:HOME}/.config/doctl,target=/tmp/doctl-config-linux,type=bind,consistency=cached,readonly",
+    "source=${localEnv:HOME}/.config/gh,target=/home/devcontainer/.config/gh,type=bind,consistency=cached,readonly",
+    // AI CLI tools need read-write access to maintain session state and history
+    "source=${localEnv:HOME}/.gemini,target=/home/devcontainer/.gemini,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.codex,target=/home/devcontainer/.codex,type=bind,consistency=cached",
+    "source=${localEnv:HOME}/.claude,target=/home/devcontainer/.claude,type=bind,consistency=cached"
+  ],
+
+  // Environment variables
+  "remoteEnv": {
+    "DIGITALOCEAN_ACCESS_TOKEN": "${localEnv:DIGITALOCEAN_API_TOKEN}",
+    "GEMINI_API_KEY": "${localEnv:GEMINI_API_KEY}",
+    "CLAUDE_CONFIG_DIR": "/home/devcontainer/.claude",
+    "GEMINI_CONFIG_DIR": "/home/devcontainer/.gemini",
+    "CODEX_CONFIG_DIR": "/home/devcontainer/.codex",
+    // Service enablement (set to "true" to enable, "false" to disable)
+    "ENABLE_POSTGRES": "true",
+    "ENABLE_VALKEY": "true",
+    "ENABLE_MYSQL": "true",
+    "ENABLE_KAFKA": "true",
+    "ENABLE_OPENSEARCH": "true",
+    "ENABLE_MINIO": "true",
+    "ENABLE_MONGODB": "true"
+  },
+
+  // Commands to run after container creation
+  "postCreateCommand": "/bin/bash -lc '.devcontainer/post-create.sh'",
+
+  // VS Code / Cursor extensions
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "ms-vscode.vscode-typescript-next",
+        "bradlc.vscode-tailwindcss",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "github.vscode-github-cli",
+        "golang.go",
+        "rust-lang.rust-analyzer",
+        "prisma.prisma",
+        "mtxr.sqltools",
+        "ms-azuretools.vscode-docker",
+        "ms-vscode.vscode-json",
+        "anthropic.claude-code",
+        "google.gemini-cli-vscode-ide-companion",
+        "google.geminicodeassist",
+        "openai.chatgpt"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "python",
+        "python.linting.enabled": true,
+        "python.linting.pylintEnabled": false,
+        "python.formatting.provider": "black",
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "files.eol": "\n",
+        "go.toolsManagement.autoUpdate": true,
+        "rust-analyzer.checkOnSave.command": "clippy"
+      }
+    }
+  },
+
+  // Remote user
+  "remoteUser": "devcontainer"
+}

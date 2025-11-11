@@ -1,0 +1,218 @@
+services:
+  app:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        - INSTALL_NODE=${INSTALL_NODE}
+        - NVM_VERSION=${NVM_VERSION}
+        - NODE_VERSIONS=${NODE_VERSIONS}
+        - NODE_DEFAULT_VERSION=${NODE_DEFAULT_VERSION}
+        - INSTALL_PYTHON=${INSTALL_PYTHON}
+        - PYTHON_VERSIONS=${PYTHON_VERSIONS}
+        - PYTHON_DEFAULT_VERSION=${PYTHON_DEFAULT_VERSION}
+        - INSTALL_GOLANG=${INSTALL_GOLANG}
+        - GOLANG_VERSION=${GOLANG_VERSION}
+        - INSTALL_RUST=${INSTALL_RUST}
+        - MONGOSH_VERSION=${MONGOSH_VERSION}
+    volumes:
+      - ..:/workspaces/app:cached
+    command: sleep infinity
+    environment:
+      - HOME=/home/devcontainer
+      # Database and service connection strings
+      - DATABASE_URL=postgresql://postgres:postgres@postgres:5432/devcontainer_db
+      - MYSQL_URL=mysql://mysql:mysql@mysql:3306/devcontainer_db
+      - MONGODB_URL=mongodb://mongodb:mongodb@mongodb:27017/devcontainer_db
+      - VALKEY_URL=redis://valkey:6379
+      - KAFKA_BROKERS=kafka:29092
+      - OPENSEARCH_URL=http://opensearch:9200
+      - MINIO_ENDPOINT=minio:9000
+      - MINIO_ACCESS_KEY=minio
+      - MINIO_SECRET_KEY=minio12345
+    depends_on:
+      - postgres
+      - minio
+    networks:
+      - devcontainer-network
+    # No profile = starts by default
+
+  postgres:
+    env_file:
+      - .env
+    image: postgres:${POSTGRES_VERSION}
+    container_name: devcontainer-postgres
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: "${POSTGRES_USER:-postgres}"
+      POSTGRES_PASSWORD: "${POSTGRES_PASSWORD:-postgres}"
+      POSTGRES_DB: "${POSTGRES_DB:-devcontainer_db}"
+    volumes:
+      - postgres_data:/var/lib/postgresql
+    networks:
+      - devcontainer-network
+    # No profile = starts by default
+
+  valkey:
+    env_file:
+      - .env
+    image: valkey/valkey:${VALKEY_VERSION}
+    container_name: devcontainer-valkey
+    restart: unless-stopped
+    ports:
+      - "${VALKEY_PORT:-6379}:6379"
+    volumes:
+      - valkey_data:/data
+    networks:
+      - devcontainer-network
+    profiles:
+      - valkey
+
+  mysql:
+    env_file:
+      - .env
+    image: mysql:${MYSQL_VERSION}
+    container_name: devcontainer-mysql
+    restart: unless-stopped
+    ports:
+      - "${MYSQL_PORT:-3306}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: "${MYSQL_ROOT_PASSWORD:-mysql}"
+      MYSQL_DATABASE: "${MYSQL_DATABASE:-devcontainer_db}"
+      MYSQL_USER: "${MYSQL_USER:-mysql}"
+      MYSQL_PASSWORD: "${MYSQL_PASSWORD:-mysql}"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - devcontainer-network
+    profiles:
+      - mysql
+
+  zookeeper:
+    env_file:
+      - .env
+    image: confluentinc/cp-zookeeper:${ZOOKEEPER_VERSION}
+    container_name: devcontainer-zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - devcontainer-network
+    profiles:
+      - kafka
+
+  kafka:
+    env_file:
+      - .env
+    image: confluentinc/cp-kafka:${KAFKA_VERSION}
+    container_name: devcontainer-kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "${KAFKA_PORT:-9092}:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    volumes:
+      - kafka_data:/var/lib/kafka/data
+    networks:
+      - devcontainer-network
+    profiles:
+      - kafka
+
+  opensearch:
+    env_file:
+      - .env
+    image: opensearchproject/opensearch:${OPENSEARCH_VERSION}
+    container_name: devcontainer-opensearch
+    restart: unless-stopped
+    ports:
+      - "${OPENSEARCH_PORT:-9200}:9200"
+      - "${OPENSEARCH_TRANSPORT_PORT:-9300}:9300"
+    environment:
+      - discovery.type=single-node
+      - "OPENSEARCH_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "DISABLE_INSTALL_DEMO_CONFIG=true"
+      - "DISABLE_SECURITY_PLUGIN=true"
+    volumes:
+      - opensearch_data:/usr/share/opensearch/data
+    networks:
+      - devcontainer-network
+    profiles:
+      - opensearch
+
+  opensearch-dashboards:
+    env_file:
+      - .env
+    image: opensearchproject/opensearch-dashboards:${OPENSEARCH_VERSION}
+    container_name: devcontainer-opensearch-dashboards
+    restart: unless-stopped
+    ports:
+      - "${OPENSEARCH_DASHBOARDS_PORT:-5601}:5601"
+    environment:
+      - "OPENSEARCH_HOSTS=http://opensearch:9200"
+      - "DISABLE_SECURITY_DASHBOARDS_PLUGIN=true"
+    depends_on:
+      - opensearch
+    networks:
+      - devcontainer-network
+    profiles:
+      - opensearch
+
+  minio:
+    env_file:
+      - .env
+    image: minio/minio:${MINIO_VERSION}
+    container_name: devcontainer-minio
+    command: server /data --console-address ":8900"
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-8900}:8900"
+    environment:
+      MINIO_ROOT_USER: "${MINIO_ROOT_USER:-minio}"
+      MINIO_ROOT_PASSWORD: "${MINIO_ROOT_PASSWORD:-minio12345}"
+    volumes:
+      - minio_data:/data
+    networks:
+      - devcontainer-network
+    # No profile = starts by default
+
+  mongodb:
+    env_file:
+      - .env
+    image: mongo:${MONGODB_VERSION}-noble
+    container_name: devcontainer-mongodb
+    restart: unless-stopped
+    ports:
+      - "${MONGODB_PORT:-27017}:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: "${MONGO_ROOT_USERNAME:-mongodb}"
+      MONGO_INITDB_ROOT_PASSWORD: "${MONGO_ROOT_PASSWORD:-mongodb}"
+      MONGO_INITDB_DATABASE: "${MONGO_INITDB_DATABASE:-devcontainer_db}"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - devcontainer-network
+    profiles:
+      - mongodb
+
+volumes:
+  postgres_data:
+  valkey_data:
+  mysql_data:
+  kafka_data:
+  opensearch_data:
+  minio_data:
+  mongodb_data:
+
+networks:
+  devcontainer-network:
+    driver: bridge

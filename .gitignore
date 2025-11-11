@@ -1,0 +1,83 @@
+# AI Configuration (host-mounted, personal)
+.claude/
+.gemini/
+.codex/
+
+# Blog/documentation drafts
+blog-post.md
+*.draft.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+.pytest_cache/
+.uv-cache/
+pip-log.txt
+pip-delete-this-directory.txt
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm/
+.eslintcache
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+go.work.sum
+
+# Rust
+target/
+Cargo.lock
+**/*.rs.bk
+*.pdb
+
+# Test logs and outputs
+test-suite/logs/
+*.log
+
+# IDE
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.bak
+
+# Docker volumes (if any local overrides)
+docker-compose.override.yml
+
+# Environment overrides (user-specific)
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+*.tmp

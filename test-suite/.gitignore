@@ -1,0 +1,4 @@
+logs/
+.uv-cache/
+python/.venv/
+node/node_modules/
