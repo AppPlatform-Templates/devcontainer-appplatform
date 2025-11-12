@@ -126,6 +126,12 @@
         "go.toolsManagement.autoUpdate": true,
         "rust-analyzer.checkOnSave.command": "clippy"
       }
+    },
+    "cursor": {
+      "settings": {
+        "cursor.ai.enabled": true,
+        "cursor.ai.remoteEnabled": true
+      }
     }
   },
 

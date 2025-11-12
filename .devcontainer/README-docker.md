@@ -187,6 +187,48 @@ docker compose restart
 docker compose up # Run in foreground to see errors
 docker logs <container_name> # Check logs
 
+## System Maintenance & Cleanup
+
+**Important:** Docker accumulates storage over time from images, containers, volumes, and build cache. Regular cleanup prevents disk space issues.
+
+### Check Disk Usage
+
+docker system df # See how much space Docker is using
+docker system df -v # Detailed breakdown by resource type
+
+### Safe Cleanup (Recommended)
+
+# Remove stopped containers, unused networks, and dangling images
+docker system prune
+
+# Clean up for this project only
+docker compose down # Stop and remove project containers
+docker volume prune # Remove unused volumes (check before confirming!)
+
+### Aggressive Cleanup (When You Need Space)
+
+# WARNING: Removes ALL unused images (not just dangling ones)
+docker system prune -a
+
+# NUCLEAR OPTION: Remove everything unused (containers, images, volumes, cache)
+# This will delete data in unused volumes!
+docker system prune -a --volumes
+
+### What Gets Removed
+
+- `docker system prune`: Stopped containers, unused networks, dangling images (no tags), build cache
+- `docker system prune -a`: All of the above + **all unused images** (even tagged ones)
+- `docker system prune -a --volumes`: All of the above + **all unused volumes (DATA LOSS!)**
+
+### When to Clean Up
+
+- **Weekly/Monthly:** Run `docker system prune` to remove build cache and dangling images
+- **Before major updates:** Run `docker system prune -a` to clear old images
+- **Low disk space:** Check `docker system df`, then use appropriate prune command
+- **After removing projects:** Remove associated volumes with `docker volume prune`
+
+**Pro Tip:** Closing VS Code/Cursor does **NOT** stop your dev containers. Always use `docker compose down` or stop containers explicitly to free up memory.
+
 ## Tips
 
 # Find container name quickly:

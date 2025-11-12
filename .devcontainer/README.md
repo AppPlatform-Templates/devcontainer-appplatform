@@ -1,10 +1,10 @@
 # Dev Container Setup for DigitalOcean App Platform
 
-This Dev Container gives DigitalOcean App Platform customers a complete local development environment that mirrors production—with zero configuration overhead. Copy the `.devcontainer/` folder to your repository, open in VS Code/Cursor, and everything just works.
+This Dev Container gives DigitalOcean App Platform customers a complete local development environment that mirrors production—with little configuration overhead. Copy the `.devcontainer/` folder to your repository, open in VS Code/Cursor, and everything just works.
 
 **Tested on:** macOS
 
-## 🚀 Getting Started: Two Paths
+## 🚀 Getting Started
 
 **Important:** You don't clone this repository. Instead, you copy the `.devcontainer/` folder from this repository into your own application repository. This keeps everything self-contained and allows you to customize it for your specific needs.
 
@@ -61,7 +61,8 @@ Building a brand-new application? Here's the recommended workflow:
    - Select **"Dev Containers: Reopen in Container"**
    - First-time setup takes 5-10 minutes (downloads images, installs runtimes)
 
-6. **Start building:** Your AI coding assistants (Claude Code, Cursor, Copilot) are pre-configured and ready. Tell them to build your application features, and they'll have access to all local services.
+6. **Start building:** Your AI coding assistants (Claude Code, Cursor, Copilot) should be pre-configured and ready. 
+
 
 ### Path B: Adding Dev Container to Existing Application (Brownfield)
 
@@ -145,46 +146,54 @@ When you deploy to App Platform, simply don't set `APP_ENV=local`, and it automa
 
 **Tested on:** macOS
 
-**Linux/Windows:** The dev container includes mount commands for credential directories that use macOS-specific paths. You may need to:
+**Linux/Windows:** The dev container mounts credential directories from your host machine. Most paths work across platforms, but some require platform-specific configuration.
 
-1. **Update mount paths in `devcontainer.json`** for your platform:
+### What Works Automatically
 
-   - **Linux:** `doctl` config is typically at `~/.config/doctl/config.yaml` (already included as fallback)
-   - **Windows:** Paths will differ significantly; you may need to manually configure credentials inside the container
+**All platforms (macOS, Linux, Windows):**
+- ✅ **Authentication is one-time on your HOST machine** - Authenticate once, works across all container rebuilds
+- ✅ GitHub CLI (`~/.config/gh`) - Usually works on all platforms
+- ✅ Claude Code (`~/.claude`) - Usually works on all platforms
+- ✅ Gemini (`~/.gemini`) - Usually works on all platforms
+- ✅ Codex (`~/.codex`) - Usually works on all platforms
 
-2. **Manually configure credentials** inside the container if mounts fail:
+**Platform-specific:**
+- **doctl (macOS):** `~/Library/Application Support/doctl` (primary mount)
+- **doctl (Linux):** `~/.config/doctl` (fallback mount, already supported)
+- **doctl (Windows):** May require manual configuration inside container
 
-   - Run `doctl auth init` inside the container
-   - Configure GitHub CLI: `gh auth login`
-   - See [Troubleshooting](#-troubleshooting) section for platform-specific solutions
+### If Mounts Fail (Windows or custom paths)
 
-3. **Verify mount paths exist** on your host before opening the dev container:
+If credential mounting doesn't work on your platform:
 
+1. **Let the container mount fail gracefully** (it won't break the setup)
+2. **Authenticate inside the container** (one-time setup):
    ```bash
-   # macOS
-   ls -la ~/Library/Application\ Support/doctl ~/.config/gh ~/.gemini ~/.codex ~/.claude
-
-   # Linux
-   ls -la ~/.config/doctl ~/.config/gh ~/.gemini ~/.codex ~/.claude
+   # Inside the dev container terminal
+   doctl auth init
+   gh auth login
+   claude auth login
    ```
+3. **Credentials persist via mounted volumes** - No need to re-authenticate on rebuilds
 
-**Note:** The dev container attempts to mount both macOS and Linux paths for `doctl`, but other tools may need manual configuration on non-macOS systems.
+### Verify Before Starting
 
----
+Check that credential directories exist on your host:
 
-## ✨ Why This Works
+```bash
+# macOS
+ls -la ~/Library/Application\ Support/doctl ~/.config/gh ~/.gemini ~/.codex ~/.claude
 
-This Dev Container automatically sets up environment variables that point to local services. When `APP_ENV=local`, your refactored config uses these local URLs. In production, it uses your App Platform environment variables.
+# Linux
+ls -la ~/.config/doctl ~/.config/gh ~/.gemini ~/.codex ~/.claude
 
-**What You Get:**
+# Windows (PowerShell)
+ls $env:USERPROFILE\.config\gh, $env:USERPROFILE\.claude, $env:USERPROFILE\.gemini, $env:USERPROFILE\.codex
+```
 
-- 🎯 **Zero Configuration:** Copy `.devcontainer/` → Open → Run. No manual setup.
-- 🔒 **Isolated Environment:** Everything runs in containers. No conflicts with your host machine.
-- 🤖 **AI-Ready:** Cursor, Claude Code, Copilot, and other AI assistants work seamlessly inside the container.
-- 🚀 **Fast Iteration:** Hot reload, HMR, and instant feedback—just like production, but local.
-- 🔄 **Production Parity:** Local services behave like real DO-managed services.
+**Key Point:** Whether you authenticate on the host or inside the container, you only do it **once**. Credentials are mounted from your host and persist across container rebuilds.
 
----
+
 
 ## 🎯 Who This Is For
 
@@ -195,9 +204,6 @@ This Dev Container is designed for **DigitalOcean App Platform customers** who:
 - Want rapid local development with AI assistance
 - Need an isolated, reproducible development environment
 
-If you want to develop locally without managing credentials, connection strings, or service setup, this is for you.
-
----
 
 ## 🏗️ Architecture: How It Works
 
@@ -253,6 +259,68 @@ Before you start:
 - ✅ Docker Desktop or Docker Engine installed and running
 - ✅ VS Code or Cursor installed
 - ✅ Dev Containers extension (usually built-in or available in marketplace)
+
+---
+
+## 🔐 Credentials & Mounted Volumes
+
+**Important:** This dev container mounts certain credential directories from your host machine to enable seamless authentication with cloud services and AI tools. **These credentials remain on your host and are never shared in git repositories.**
+
+### What Gets Mounted
+
+The following directories are mounted from your host into the container:
+
+**doctl (DigitalOcean CLI):**
+- **Host path (macOS):** `~/Library/Application Support/doctl` → Container: `/tmp/doctl-config-mac` (readonly)
+- **Host path (Linux):** `~/.config/doctl` → Container: `/tmp/doctl-config-linux` (readonly)
+- During startup, credentials are copied to `/home/devcontainer/.config/doctl/` with proper permissions
+
+**Claude Code:**
+- **Host path:** `~/.claude` → Container: `/home/devcontainer/.claude` (read-write)
+- Files: `.credentials.json`, `settings.json`, `.claude.json`
+- Permissions set to 600 during startup for security
+
+**GitHub CLI:**
+- **Host path:** `~/.config/gh` → Container: `/home/devcontainer/.config/gh` (readonly)
+- Authentication persists automatically via mount
+
+**Gemini CLI:**
+- **Host path:** `~/.gemini` → Container: `/home/devcontainer/.gemini` (read-write)
+- Requires `GEMINI_API_KEY` environment variable on host
+
+**Codex:**
+- **Host path:** `~/.codex` → Container: `/home/devcontainer/.codex` (read-write)
+- Authentication persists automatically via mount
+
+### One-Time Authentication
+
+**You only need to authenticate ONCE on your host machine.** After initial setup:
+- Authentication persists across container rebuilds
+- No need to re-authenticate when recreating containers
+- Credentials stay on your host, never copied to git
+
+**Initial Setup (first time only):**
+
+```bash
+# On your HOST machine (macOS/Linux), before opening dev container:
+
+# 1. Authenticate with DigitalOcean
+doctl auth init
+
+# 2. Authenticate with GitHub
+gh auth login
+
+# 3. Authenticate with Claude Code
+claude auth login
+
+# 4. Set Gemini API key (add to ~/.bashrc or ~/.zshrc)
+export GEMINI_API_KEY="your-api-key-here"
+```
+
+**Platform Notes:**
+- **macOS:** All mounts work by default
+- **Linux:** doctl path is `~/.config/doctl` (already supported). Other paths should work as-is.
+- **Windows:** You may need to manually configure credentials inside the container if mounts fail. See [Platform Compatibility](#-platform-compatibility) section.
 
 ---
 
@@ -315,10 +383,11 @@ Each dev container uses hardcoded container names (`devcontainer-postgres`, `dev
 1. **Stop containers from other projects** before starting a new one:
 
    ```bash
-   # Stop all devcontainer services
-   docker stop devcontainer-postgres devcontainer-valkey devcontainer-mysql devcontainer-minio devcontainer-kafka devcontainer-mongodb devcontainer-opensearch devcontainer-zookeeper
+   # Recommended: Use docker compose down (stops and removes containers)
+   cd /path/to/other/project
+   docker compose -f .devcontainer/docker-compose.yml down
 
-   # Or stop all at once
+   # Or stop all devcontainer services at once
    docker ps -q --filter "name=devcontainer-" | xargs docker stop
    ```
 
@@ -581,19 +650,15 @@ docker build --check -f .devcontainer/Dockerfile .devcontainer/
 
 If you see errors like "container name already exists" or "port already allocated":
 
-1. **Stop existing containers** from other projects:
+1. **Stop and remove existing containers** from other projects:
 
    ```bash
-   # Stop all devcontainer services
-   docker stop devcontainer-postgres devcontainer-valkey devcontainer-mysql devcontainer-minio devcontainer-kafka devcontainer-mongodb devcontainer-opensearch devcontainer-zookeeper
+   # Recommended: Use docker compose down from the other project
+   cd /path/to/other/project
+   docker compose -f .devcontainer/docker-compose.yml down
 
-   # Or find and stop all at once
+   # Or stop and remove all devcontainer services at once
    docker ps -q --filter "name=devcontainer-" | xargs docker stop
-   ```
-
-2. **Remove stopped containers** if needed:
-
-   ```bash
    docker ps -aq --filter "name=devcontainer-" | xargs docker rm
    ```
 
@@ -698,16 +763,34 @@ A: The dev container is tested on macOS. For Linux/Windows, you may need to:
 2. Manually configure credentials inside the container (run `doctl auth init`, `gh auth login`, etc.)
 3. See [Platform Compatibility](#-platform-compatibility) section for details
 
-**Q: How do I stop containers manually?**
-A: Use Docker commands:
+**Q: How do I stop the dev container? Does closing VS Code/Cursor stop it?**
+A: **No, closing your editor does NOT stop the containers.** You must explicitly stop them:
 
+**Recommended method (stops and removes containers):**
 ```bash
-# Stop all devcontainer services
-docker stop devcontainer-postgres devcontainer-valkey devcontainer-mysql devcontainer-minio devcontainer-kafka devcontainer-mongodb devcontainer-opensearch devcontainer-zookeeper
+# From your project directory
+docker compose -f .devcontainer/docker-compose.yml down
+```
 
-# Or stop all at once
+**Alternative methods:**
+```bash
+# Stop without removing (containers persist)
+docker compose -f .devcontainer/docker-compose.yml stop
+
+# Verify containers are stopped
+docker ps | grep devcontainer
+
+# Stop specific containers by name
+docker stop devcontainer-postgres devcontainer-valkey devcontainer-minio
+
+# Stop all devcontainer services at once
 docker ps -q --filter "name=devcontainer-" | xargs docker stop
 ```
+
+**When to use each:**
+- Use `docker compose down` when completely done (frees memory and removes containers)
+- Use `docker compose stop` for temporary pause (faster to restart later)
+- Containers continue running in the background even after closing VS Code/Cursor
 
 ---
 

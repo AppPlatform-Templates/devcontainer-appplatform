@@ -32,6 +32,35 @@ if [ -f "$HOME/.gemini/tokens.json" ] || [ -d "/tmp/gemini-config" ]; then
     chmod 600 "$HOME/.gemini"/* 2>/dev/null || true
 fi
 
+# Copy Claude credentials if they exist in mounted volume
+# This ensures proper file permissions and authentication persistence
+if [ -d "$HOME/.claude" ]; then
+    # Copy credentials file if it exists
+    if [ -f "$HOME/.claude/.credentials.json" ]; then
+        chmod 600 "$HOME/.claude/.credentials.json" 2>/dev/null || true
+    fi
+
+    # Copy settings file if it exists
+    if [ -f "$HOME/.claude/settings.json" ]; then
+        chmod 600 "$HOME/.claude/settings.json" 2>/dev/null || true
+    fi
+
+    # Copy .claude.json for bypass permissions mode if it exists
+    if [ -f "$HOME/.claude/.claude.json" ]; then
+        chmod 600 "$HOME/.claude/.claude.json" 2>/dev/null || true
+    fi
+fi
+
+# Copy Codex config if it exists
+if [ -d "$HOME/.codex" ]; then
+    # Set proper permissions on config directory
+    chmod 700 "$HOME/.codex" 2>/dev/null || true
+    # Set permissions for files (not directories)
+    find "$HOME/.codex" -type f -exec chmod 600 {} \; 2>/dev/null || true
+    # Set permissions for subdirectories
+    find "$HOME/.codex" -type d -exec chmod 700 {} \; 2>/dev/null || true
+fi
+
 # Run doctl configuration setup
 echo "Setting up doctl configuration..."
 bash .devcontainer/setup-doctl-config.sh

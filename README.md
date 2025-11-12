@@ -1,9 +1,9 @@
 # DigitalOcean App Platform Dev Container
 
-> **Complete local development environment for DigitalOcean App Platform**
+> **Local Development Environment Setup for DigitalOcean App Platform**
 > Copy `.devcontainer/` → Open → Run. Zero configuration needed.
 
-A production-ready development container template that provides DigitalOcean App Platform customers with a complete local environment mirroring production. Includes multi-language runtime support (Node.js, Python, Go, Rust) and local infrastructure services (PostgreSQL, MySQL, Valkey, Kafka, OpenSearch, MinIO, MongoDB) that replicate DigitalOcean managed services.
+A development container template that provides DigitalOcean App Platform customers with a complete local environment mirroring production. Includes multi-language runtime support (Node.js, Python, Go, Rust) and local infrastructure services (PostgreSQL, MySQL, Valkey, Kafka, OpenSearch, MinIO, MongoDB) that replicate DigitalOcean managed services.
 
 **Tested on:** macOS
 
@@ -12,11 +12,10 @@ A production-ready development container template that provides DigitalOcean App
 - **🎯 Zero Configuration** - Copy `.devcontainer/` folder to your repo, open in VS Code/Cursor, and start coding immediately
 - **🔒 Isolated Environment** - Everything runs in containers with no conflicts on your host machine
 - **🤖 AI-Ready** - Pre-configured for Cursor, Claude Code, Copilot, and other AI assistants
-- **🚀 Fast Iteration** - Hot reload, HMR, and instant feedback loops
-- **🔄 Production Parity** - Local services behave exactly like DigitalOcean managed services
+- **🔄 Production Parity** - Local services to mirror DigitalOcean managed services
 - **📦 Multi-Language Support** - Node.js, Python, Go, and Rust runtimes included
-- **💾 Complete Service Stack** - PostgreSQL, Valkey, MinIO, MySQL, Kafka, MongoDB, OpenSearch
-- **⚡ Resource Conscious** - Profile-based service control for systems with limited RAM
+- **💾 Services Stack** - PostgreSQL, Valkey, MinIO, MySQL, Kafka, MongoDB, OpenSearch
+- **⚡ Resource Conscious** - Profile-based service control
 
 ## 🚀 Quick Start
 
@@ -27,6 +26,14 @@ A production-ready development container template that provides DigitalOcean App
 - Docker Desktop or Docker Engine installed and running
 - VS Code or Cursor installed
 - Dev Containers extension (usually built-in)
+
+**One-Time Authentication (Optional):** For AI tools and DigitalOcean CLI to work seamlessly, authenticate once on your host machine before opening the dev container. This persists across all container rebuilds:
+```bash
+doctl auth init          # DigitalOcean CLI
+gh auth login            # GitHub CLI
+claude auth login        # Claude Code
+```
+See [Credentials & Mounted Volumes](.devcontainer/README.md#-credentials--mounted-volumes) for details.
 
 ### Get Started
 
@@ -171,7 +178,7 @@ After making changes, rebuild the container in VS Code/Cursor (Command Palette �
 
 ## 🧪 Test Suite
 
-This repository includes a comprehensive 3-tier test suite to validate the dev container setup:
+This repository includes a test suite to validate the dev container setup:
 
 **Tier 1: Container Health**
 - Validates Docker Compose services are running
@@ -216,6 +223,3 @@ MIT License - see [LICENSE](LICENSE) file for details.
 5. **Run the test suite:** Validate your setup with `bash test-suite/run-suite.sh`
 6. **Start coding:** Your local environment now mirrors production!
 
----
-
-**Built for DigitalOcean App Platform developers who want local development without the hassle.**
